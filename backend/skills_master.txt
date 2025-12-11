@@ -1,0 +1,45 @@
+python
+java
+javascript
+react
+node.js
+express
+django
+flask
+aws
+azure
+gcp
+docker
+kubernetes
+sql
+postgresql
+mongodb
+html
+css
+tensorflow
+pytorch
+git
+rest api
+api
+microservices
+linux
+c++
+c#
+excel
+data analysis
+pandas
+numpy
+machine learning
+deep learning
+nlp
+spark
+hadoop
+android
+ios
+firebase
+devops
+cloud computing
+jira
+bootstrap
+typescript
+oop

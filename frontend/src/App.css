@@ -1,0 +1,369 @@
+/* =====================================================
+   GLOBAL THEME — PROFESSIONAL LIGHT (LINKEDIN STYLE)
+===================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+  background: #f5f7fb;
+  color: #222;
+}
+
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-thumb {
+  background: #cdd7f7;
+  border-radius: 8px;
+}
+
+/* =====================================================
+   AUTH — LOGIN & REGISTER PAGES
+===================================================== */
+.auth-wrapper {
+  width: 100%;
+  height: 100vh;
+  background: #f5f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.auth-container {
+  width: 380px;
+  padding: 35px 32px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 6px 22px rgba(0, 40, 100, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 16px;
+  color: #1a3fa5;
+  font-weight: 700;
+  font-size: 26px;
+}
+
+.auth-container input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #cfd6e3;
+  margin-bottom: 12px;
+  font-size: 15px;
+  background: #f8fbff;
+  transition: 0.2s;
+}
+
+.auth-container input:focus {
+  border-color: #1a4ee8;
+  background: white;
+}
+
+.auth-container button {
+  padding: 14px;
+  background: #1a4ee8;
+  color: white;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.auth-container button:hover {
+  background: #0d38b3;
+}
+
+.auth-switch {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.auth-switch span {
+  color: #1a4ee8;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* =====================================================
+   DASHBOARD LAYOUT
+===================================================== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: #0d47a1;
+  color: white;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+}
+
+.logo {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  letter-spacing: 0.4px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.menu-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  padding-top: 18px;
+}
+
+/* =====================================================
+   MAIN AREA (TOPBAR + CONTENT)
+===================================================== */
+.main {
+  margin-left: 240px;
+  width: calc(100% - 240px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOPBAR */
+.topbar {
+  height: 65px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px;
+  border-bottom: 1px solid #dfe4ea;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.search-box {
+  width: 300px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #cfd6e3;
+  background: #f8fbff;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.login-btn {
+  background-color: #e3e7ff;
+  color: #2c3e50;
+}
+
+.register-btn {
+  background-color: #0052cc;
+  color: white;
+}
+
+.small-logout {
+  background: #e74c3c;
+  color: white !important;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.top-icon {
+  font-size: 26px;
+  color: #444;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* PAGE CONTENT */
+.page-content {
+  padding: 25px;
+  overflow-y: auto;
+  height: calc(100vh - 65px);
+}
+
+/* =====================================================
+   UPLOAD, ANALYSIS, RESULT, HOME — Your Original UI
+   (Cleaned, Optimized, No Duplicates)
+===================================================== */
+
+.upload-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.upload-card {
+  background: white;
+  width: 420px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 30, 100, 0.08);
+  text-align: center;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a4ee8;
+}
+
+.analysis-container {
+  display: flex;
+  gap: 30px;
+  margin: 30px auto;
+  width: 95%;
+  max-width: 1300px;
+}
+
+.left-panel,
+.right-panel {
+  flex: 1;
+  background: white;
+  padding: 24px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 30, 100, 0.08);
+}
+
+textarea {
+  width: 100%;
+  height: 170px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.8px solid #e3e7f4;
+  background: #f9fbff;
+  resize: none;
+}
+
+textarea:focus {
+  border-color: #1a4ee8;
+  background: white;
+}
+
+/* PROFESSIONAL SAMPLE BOXES */
+.sample-item {
+  background: #eef3ff;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  border-left: 4px solid #1a4ee8;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.sample-item:hover {
+  background: #dbe6ff;
+}
+
+/* RESULT PAGE */
+.result-container {
+  display: flex;
+  gap: 32px;
+  width: 95%;
+  max-width: 1400px;
+  margin: 35px auto;
+}
+
+.score-panel {
+  width: 320px;
+  background: white;
+  padding: 32px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 30, 100, 0.1);
+}
+
+.score-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin: auto;
+  background: conic-gradient(#1a4ee8 calc(var(--percent) * 1%), #e4e9f7 0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.details-panel {
+  flex: 1;
+  background: white;
+  padding: 32px;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0, 30, 100, 0.1);
+}
+
+/* HOME PAGE */
+.home-card {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 30, 100, 0.08);
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 900px) {
+  .analysis-container,
+  .result-container {
+    flex-direction: column;
+  }
+
+  .score-panel {
+    width: 100%;
+  }
+
+  .search-box {
+    width: 180px;
+  }
+}
