@@ -22,9 +22,10 @@ function CareerAssistant() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const goHome = () => {
-    window.location.replace("/");
-  };
+
+
+
+
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -72,9 +73,15 @@ function CareerAssistant() {
     <div className="career-page">
       {/* HEADER */}
       <div className="career-header">
-        <button type="button" className="back-btn" onClick={goHome}>
-          ← Back to Home
-        </button>
+        <button
+  className="back-btn"
+  onClick={() => {
+    window.dispatchEvent(new Event("go-to-home"));
+  }}
+>
+  ← Back to Home
+</button>
+
       
       </div>
 

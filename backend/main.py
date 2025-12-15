@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from datetime import datetime
 from fastapi.responses import FileResponse
+from ai.ats_ai import generate_ats_ai_suggestions
 
 import pdfplumber
 import docx
@@ -93,6 +94,10 @@ class User(Base):
     password_hash = Column(String)
 
 Base.metadata.create_all(bind=engine)
+
+class ATSAIRequest(BaseModel):
+    resume_text: str
+    jd_text: str
 
 # ===============================
 # DB DEPENDENCY
@@ -262,6 +267,15 @@ def export_ats_pdf(data: dict):
     draw("Missing Skills:", 13)
     for s in data.get("missing_skills", []):
         draw(f"- {s}")
+    y -= 10
+    draw("Recommended Skills to learn:", 13)
+    for s in data.get("recommended_skills", []):
+        draw(f"- {s}")
+    y -= 10
+    draw("Interview Question be like:", 13)
+    for s in data.get("interview_questions", []):
+        draw(f"- {s}")
+
 
     c.showPage()
     c.save()
@@ -323,3 +337,62 @@ app.include_router(career_ai_router)
 @app.get("/")
 def root():
     return {"status": "Career Compass backend running"}
+
+
+@app.post("/ats-ai-suggestions")
+async def ats_ai_suggestions(data: ATSAIRequest):
+    return generate_ats_ai_suggestions(
+        resume_text=data.resume_text,
+        jd_text=data.jd_text
+    )
+# ===============================
+# RULE-BASED RECOMMENDATIONS (NO AI)
+# ===============================
+@app.post("/ats-recommendations")
+def ats_recommendations(payload: dict):
+    missing_skills = payload.get("missing_skills", [])
+
+    # Skill → Interview Questions Mapping
+    QUESTION_BANK = {
+        "python": [
+            "What are Python decorators?",
+            "Difference between list and tuple?",
+            "What is a virtual environment?"
+        ],
+        "java": [
+            "Explain OOP concepts in Java.",
+            "Difference between abstract class and interface?"
+        ],
+        "react": [
+            "What is useEffect hook?",
+            "Difference between props and state?",
+            "What is virtual DOM?"
+        ],
+        "javascript": [
+            "Difference between var, let, and const?",
+            "What are closures in JavaScript?"
+        ],
+        "sql": [
+            "What is normalization?",
+            "Difference between INNER JOIN and LEFT JOIN?"
+        ],
+        "aws": [
+            "What is EC2?",
+            "Difference between S3 and EBS?"
+        ],
+        "docker": [
+            "What is Docker?",
+            "Difference between image and container?"
+        ]
+    }
+
+    interview_questions = []
+    for skill in missing_skills:
+        interview_questions.extend(
+            QUESTION_BANK.get(skill.lower(), [])
+        )
+
+    return {
+        "recommended_skills": missing_skills,
+        "interview_questions": interview_questions[:6]
+    }

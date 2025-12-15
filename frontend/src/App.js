@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
 
 import UploadPage from "./UploadPage";
 import AnalysisPage from "./AnalysisPage";
@@ -8,6 +7,8 @@ import CareerAssistant from "./CareerAssistant";
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
 import RegisterPage from "./RegisterPage";
+import ResultsHistoryModal from "./ResultsHistoryModal";
+
 import "./App2.css";
 import "./App.css";
 
@@ -25,9 +26,21 @@ export default function App() {
   const [page, setPage] = useState("login");
   const [resumeFile, setResumeFile] = useState(null);
   const [resultData, setResultData] = useState(null);
+  const [resultsHistory, setResultsHistory] = useState([]);
+  const [showResultsModal, setShowResultsModal] = useState(false);
   const [user, setUser] = useState(null);
 
   const navigate = (p) => setPage(p);
+
+  /* ===============================
+     LOAD LAST RESULT (OPTIONAL)
+  =============================== */
+  useEffect(() => {
+    const saved = localStorage.getItem("atsResult");
+    if (saved) {
+      setResultData(JSON.parse(saved));
+    }
+  }, []);
 
   /* ===============================
      AUTH HANDLERS
@@ -46,21 +59,21 @@ export default function App() {
   };
 
   const logout = () => {
+    localStorage.removeItem("atsResult");
     setUser(null);
+    setResultData(null);
+    setResultsHistory([]);
     setPage("login");
   };
 
   /* ===============================
-     NOT LOGGED IN → AUTH ONLY
+     NOT LOGGED IN
   =============================== */
   if (!user) {
     return (
       <>
         {page === "login" && (
-          <LoginPage
-            onLoginSuccess={handleLoginSuccess}
-            onSwitch={setPage}
-          />
+          <LoginPage onLoginSuccess={handleLoginSuccess} onSwitch={setPage} />
         )}
 
         {page === "register" && (
@@ -74,12 +87,12 @@ export default function App() {
   }
 
   /* ===============================
-     DASHBOARD (LOGGED IN)
+     DASHBOARD
   =============================== */
   return (
     <div className="app-container">
 
-      {/* SIDEBAR → ONLY HOME PAGE */}
+      {/* SIDEBAR */}
       {page === "home" && (
         <div className="sidebar">
           <h2 className="logo">Career Compass</h2>
@@ -97,7 +110,20 @@ export default function App() {
               <DescriptionIcon className="icon" /> Job Description
             </div>
 
-            <div className="menu-item" onClick={() => navigate("results")}>
+            {/* RESULTS */}
+            <div
+              className="menu-item"
+              onClick={() => {
+                if (resultsHistory.length > 0) {
+                  setShowResultsModal(true);
+                } else {
+                  alert(
+                    "No analysis results yet. Please upload a resume and analyze first."
+                  );
+                  navigate("upload");
+                }
+              }}
+            >
               <BarChartIcon className="icon" /> Results
             </div>
 
@@ -118,16 +144,11 @@ export default function App() {
         </div>
       )}
 
-      {/* MAIN AREA */}
+      {/* MAIN */}
       <div className={`main ${page !== "home" ? "no-sidebar" : ""}`}>
-        
-        {/* TOPBAR */}
         <div className="topbar">
           {page === "home" && (
-            <input
-              className="search-box"
-              placeholder="Search anything..."
-            />
+            <input className="search-box" placeholder="Search anything..." />
           )}
 
           <div className="topbar-right">
@@ -141,7 +162,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* PAGE CONTENT */}
         <div className="page-content">
           {page === "home" && <HomePage onNavigate={navigate} />}
 
@@ -151,7 +171,7 @@ export default function App() {
                 setResumeFile(file);
                 navigate("analysis");
               }}
-                 onBack={() => navigate("home")}
+              onBack={() => navigate("home")}
             />
           )}
 
@@ -160,25 +180,48 @@ export default function App() {
               resumeFile={resumeFile}
               onPrev={() => navigate("upload")}
               onNext={(data) => {
+                const newResult = {
+                  id: Date.now(),
+                  date: new Date().toLocaleString(),
+                  final_score: data.final_score,
+                  data,
+                };
+
+                setResultsHistory((prev) => [newResult, ...prev]);
                 setResultData(data);
+                localStorage.setItem("atsResult", JSON.stringify(data));
                 navigate("results");
               }}
             />
           )}
-       
-
-
 
           {page === "results" && (
             <ResultPage
               result={resultData}
               onBack={() => navigate("analysis")}
+              onCareerQA={() => navigate("assistant")}
             />
           )}
 
           {page === "assistant" && <CareerAssistant />}
         </div>
       </div>
+
+      {/* RESULTS HISTORY MODAL */}
+      {showResultsModal && (
+        <ResultsHistoryModal
+          results={resultsHistory}
+          onClose={() => setShowResultsModal(false)}
+          onView={(item) => {
+            setResultData(item.data);
+            setShowResultsModal(false);
+            navigate("results");
+          }}
+          onDelete={(id) =>
+            setResultsHistory((prev) => prev.filter((r) => r.id !== id))
+          }
+        />
+      )}
     </div>
   );
 }

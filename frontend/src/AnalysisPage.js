@@ -1,24 +1,20 @@
 // AnalysisPage.js
 import React, { useEffect, useState } from "react";
-import ATSResults from "./ATSResults";
 
-export default function AnalysisPage({ resumeFile, onPrev }) {
+export default function AnalysisPage({ resumeFile, onPrev, onNext }) {
   const backend = "http://127.0.0.1:8000";
 
-  // ============================
-  // CORE STATES
-  // ============================
+  /* ============================
+     CORE STATES
+  ============================ */
   const [resumeText, setResumeText] = useState("");
   const [jdText, setJdText] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [previewScore, setPreviewScore] = useState(null);
-  const [atsData, setAtsData] = useState(null);
-  const [showResults, setShowResults] = useState(false);
 
-  // ============================
-  // JD SAMPLES
-  // ============================
+  /* ============================
+     JD SAMPLES
+  ============================ */
    // ✅ RESTORED — Your JD SAMPLE LIST
   const JD_SAMPLES = {
     "Full Stack Developer": `We are looking for a highly skilled Full Stack Developer to join our engineering team.
@@ -117,43 +113,10 @@ Required Skills:
 • Manual testing fundamentals
 • Test case design & bug reporting
 • API testing with Postman`,
-  
-  "Application Support Engineer": `We are looking for an Application Support Engineer to provide technical support and ensure smooth operation of business applications.
-
-Responsibilities:
-• Monitor and support production applications.
-• Troubleshoot application issues and perform root cause analysis.
-• Work with development teams to resolve bugs.
-• Handle incident management and service requests.
-• Maintain documentation and support logs.
-
-Required Skills:
-• Basic knowledge of SQL and databases
-• Understanding of Linux/Windows systems
-• Application troubleshooting
-• ITIL or Service Management concepts
-• Communication and problem-solving skills`,
-
-      "Backend Developer": `We are hiring a Backend Developer to design and build scalable backend services.
-
-Responsibilities:
-• Develop RESTful APIs using Python and FastAPI.
-• Integrate databases and third-party services.
-• Write clean, maintainable, and testable code.
-• Optimize backend performance and security.
-• Collaborate with frontend developers and DevOps teams.
-
-Required Skills:
-• Python, FastAPI
-• REST API development
-• SQL / PostgreSQL
-• Authentication & authorization
-• Docker and cloud basics (AWS preferred)`
-
   };
-  // ============================
-  // ATS ANALYSIS CALL (FIXED)
-  // ============================
+  /* ============================
+     ATS ANALYSIS API
+  ============================ */
   const analyzeATS = async (resume, jd) => {
     const fd = new FormData();
     fd.append("resume_text", resume);
@@ -161,22 +124,21 @@ Required Skills:
 
     const res = await fetch(`${backend}/analyze_resume`, {
       method: "POST",
-      body: fd,
+      body: fd
     });
 
     const data = await res.json();
 
     if (!res.ok || data.final_score === undefined) {
-      console.error("Invalid ATS response:", data);
       throw new Error("ATS analysis failed");
     }
 
     return data;
   };
 
-  // ============================
-  // RESUME EXTRACTION
-  // ============================
+  /* ============================
+     RESUME EXTRACTION
+  ============================ */
   const extractResume = async () => {
     if (!resumeFile) {
       alert("Please upload a resume first");
@@ -189,25 +151,19 @@ Required Skills:
     try {
       const res = await fetch(`${backend}/upload_resume`, {
         method: "POST",
-        body: fd,
+        body: fd
       });
 
       const data = await res.json();
-
-      if (!data.resume_text) {
-        alert("Could not extract resume. Paste manually if needed.");
-      }
-
       setResumeText(data.resume_text || "");
-    } catch (e) {
-      console.error(e);
+    } catch {
       alert("Resume extraction failed");
     }
   };
 
-  // ============================
-  // LIVE PREVIEW SCORE
-  // ============================
+  /* ============================
+     LIVE PREVIEW SCORE
+  ============================ */
   useEffect(() => {
     if (!resumeText || !jdText) return;
 
@@ -223,9 +179,9 @@ Required Skills:
     return () => clearTimeout(timer);
   }, [resumeText, jdText]);
 
-  // ============================
-  // FINAL ANALYZE
-  // ============================
+  /* ============================
+     FINAL ANALYZE → SEND UP
+  ============================ */
   const analyze = async () => {
     if (!resumeText || !jdText) {
       alert("Resume and Job Description required");
@@ -235,8 +191,7 @@ Required Skills:
     setLoading(true);
     try {
       const data = await analyzeATS(resumeText, jdText);
-      setAtsData(data);
-      setShowResults(true);
+      onNext(data); // ✅ SEND TO APP.JS
     } catch {
       alert("ATS analysis failed");
     } finally {
@@ -244,25 +199,14 @@ Required Skills:
     }
   };
 
-  // ============================
-  // RESULTS PAGE
-  // ============================
-  if (showResults && atsData) {
-    return (
-      <ATSResults
-        data={atsData}
-        onBack={() => setShowResults(false)}
-      />
-    );
-  }
-
-  // ============================
-  // MAIN UI
-  // ============================
+  /* ============================
+     UI
+  ============================ */
   return (
     <div className="page">
       <div className="analysis-container">
 
+        {/* LEFT PANEL */}
         <div className="left-panel">
           <h3>Resume Extract</h3>
 
@@ -272,9 +216,7 @@ Required Skills:
             placeholder="Extracted resume appears here..."
           />
 
-          <button onClick={extractResume}>
-            Extract Resume
-          </button>
+          <button onClick={extractResume}>Extract Resume</button>
 
           <h3 style={{ marginTop: 20 }}>Paste Job Description</h3>
 
@@ -285,9 +227,7 @@ Required Skills:
           />
 
           {previewScore !== null && (
-            <p>
-              Live Resume Score: <b>{previewScore}%</b>
-            </p>
+            <p>Live Resume Score: <b>{previewScore}%</b></p>
           )}
 
           <div className="action-row">
@@ -298,6 +238,7 @@ Required Skills:
           </div>
         </div>
 
+        {/* RIGHT PANEL */}
         <div className="right-panel">
           <h3>Job Description Samples</h3>
           {Object.keys(JD_SAMPLES).map((role) => (
