@@ -1,47 +1,67 @@
 import React, { useState } from "react";
-import axios from "axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-export default function RegisterPage({ onRegisterSuccess }) {
+export default function RegisterPage({ onRegisterSuccess, onSwitch }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleRegister = async () => {
+  const register = () => {
     if (!name || !email || !password) {
-      alert("Please fill all fields");
+      alert("Fill all fields");
       return;
     }
 
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/register", {
-        name,
-        email,
-        password,
-      });
+    localStorage.setItem(
+      "career_user",
+      JSON.stringify({ name, email, password })
+    );
 
-      alert(response.data.message);
-      onRegisterSuccess();
-
-    } catch (err) {
-      console.error("Registration error:", err);
-
-      if (err.response && err.response.data.detail) {
-        alert(err.response.data.detail);
-      } else {
-        alert("Registration failed. Is backend running?");
-      }
-    }
+    onRegisterSuccess();
   };
 
   return (
-    <div className="auth-container">
-      <h2>Create Account</h2>
+    <div className="auth-wrapper">
+      <div className="auth-container">
+        <h2>Create Account</h2>
 
-      <input type="text" placeholder="Full Name" onChange={(e) => setName(e.target.value)} />
-      <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Full Name"
+          onChange={(e) => setName(e.target.value)}
+        />
 
-      <button onClick={handleRegister}>Register</button>
+        <input
+          type="email"
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        {/* PASSWORD WITH EYE ICON */}
+        <div className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <span
+            className="eye-icon"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+          </span>
+        </div>
+
+        <button onClick={register}>Register</button>
+
+        <div className="auth-switch">
+          Already have an account?{" "}
+          <span onClick={() => onSwitch("login")}>Login</span>
+        </div>
+      </div>
     </div>
   );
 }

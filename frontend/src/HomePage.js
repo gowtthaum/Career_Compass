@@ -1,85 +1,105 @@
 // src/HomePage.js
 import React from "react";
-
+//import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export default function HomePage({ onNavigate }) {
   return (
-    <div className="dashboard-container">
+    <div className="home-wrapper">
 
-      {/* LEFT SIDEBAR */}
-      <aside className="sidebar">
-        <h2 className="logo">Career Compass</h2>
+      {/* HERO SECTION */}
+      <section className="home-hero">
+        <h1>AI-Powered Career Compass</h1>
+        <p>
+          Analyze your resume, match it with job descriptions,
+          and improve your chances of getting shortlisted by ATS systems.
+        </p>
 
-        <nav className="menu">
-          <div className="menu-item" onClick={() => onNavigate("home")}>🏠 Home</div>
-          <div className="menu-item" onClick={() => onNavigate("upload")}>📄 Upload Resume</div>
-          <div className="menu-item" onClick={() => onNavigate("addjob")}>📝 Add Job Description</div>
-          <div className="menu-item" onClick={() => onNavigate("results")}>📊 Results</div>
-          <div className="menu-item" onClick={() => onNavigate("assistant")}>🤖 Career Assistant</div>
+        <div className="home-actions">
+          <button onClick={() => onNavigate("upload")}>Upload Resume</button>
+          <button onClick={() => onNavigate("analysis")}>Add Job Description</button>
+          <button onClick={() => onNavigate("assistant")}>Ask Career Assistant</button>
+        </div>
+      </section>
 
-          <div className="menu-footer">
-            <div className="menu-item">⚙ Settings</div>
-            <div className="menu-item">🚪 Logout</div>
-          </div>
-        </nav>
-      </aside>
+      {/* HOW IT HELPS */}
+      <section className="home-section">
+        <h2>How Career Compass Helps You</h2>
 
-      {/* MAIN PAGE AREA */}
-      <main className="main-content">
-        
-        {/* TOP NAVBAR */}
-        <header className="topbar">
-          <input type="text" placeholder="Search anything…" className="search-box" />
-          <div className="profile-area">
-            <span className="notif">🔔</span>
-            <img
-              src="https://i.pravatar.cc/40"
-              alt="profile"
-              className="profile-img"
-            />
-          </div>
-        </header>
-
-        {/* PAGE BODY */}
-        <section className="content">
-
-          <h1 className="welcome">Welcome back 👋</h1>
-          <p className="subtitle">Your AI-powered Career Assistant is ready.</p>
-
-          {/* QUICK ACTION CARDS */}
-          <div className="quick-actions">
-            <div className="action-card" onClick={() => onNavigate("upload")}>
-              📤 Upload Resume
-            </div>
-
-            <div className="action-card" onClick={() => onNavigate("addjob")}>
-              📝 Add Job Description
-            </div>
-
-            <div className="action-card" onClick={() => onNavigate("assistant")}>
-              🤖 Ask Career Assistant
-            </div>
+        <div className="feature-grid">
+          <div className="feature-card">
+            <h3>Resume Analysis</h3>
+            <p>
+              Automatically extracts skills and experience to
+              identify strengths and gaps in your resume.
+            </p>
           </div>
 
-          {/* ANALYTICS SECTION */}
-          <div className="grid-section">
-            <div className="info-box">
-              <h3>Recent Reports</h3>
-              <p>No recent activity yet.</p>
-            </div>
-
-            <div className="info-box">
-              <h3>Tips for You</h3>
-              <ul>
-                <li>Use keywords from job descriptions</li>
-                <li>Keep your resume clean & structured</li>
-                <li>Highlight measurable achievements</li>
-              </ul>
-            </div>
+          <div className="feature-card">
+            <h3>Job Description Matching</h3>
+            <p>
+              Compares your resume with real job descriptions
+              to check relevance and ATS compatibility.
+            </p>
           </div>
 
-        </section>
-      </main>
+          <div className="feature-card">
+            <h3>Smart Suggestions</h3>
+            <p>
+              Provides actionable improvements to increase
+              your resume’s ATS score.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <h3>Career Assistant</h3>
+            <p>
+              Get guidance on skills, roles, interviews,
+              and career planning using AI.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="home-section light">
+        <h2>How It Works</h2>
+
+        <ol className="steps-list">
+          <li>Upload your resume</li>
+          <li>Add the job description</li>
+          <li>Analyze resume vs requirements</li>
+          <li>Improve and recheck</li>
+        </ol>
+      </section>
+
+      {/* ATS SCORE */}
+      <section className="home-section">
+        <h2>What is an ATS Resume Score?</h2>
+
+        <p className="ats-text">
+          Applicant Tracking Systems (ATS) are used by companies
+          to filter resumes before recruiters see them.
+          Career Compass helps optimize your resume for ATS screening.
+        </p>
+
+        <div className="ats-levels">
+          <span className="good">80%+ Strong Match</span>
+          <span className="avg">60–79% Needs Improvement</span>
+          <span className="bad">Below 60% High Risk</span>
+        </div>
+      </section>
+
+      {/* TIPS */}
+      <section className="home-section light">
+        <h2>Tips for You</h2>
+
+        <ul className="tips-list">
+          <li>Use keywords from job descriptions</li>
+          <li>Keep resume clean and structured</li>
+          <li>Highlight measurable achievements</li>
+          <li>Avoid heavy graphics for ATS</li>
+        </ul>
+      </section>
 
     </div>
   );

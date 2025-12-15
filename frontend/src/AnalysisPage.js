@@ -1,12 +1,25 @@
 // AnalysisPage.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import ATSResults from "./ATSResults";
 
-export default function AnalysisPage({ resumeFile, onPrev, onNext }) {
+export default function AnalysisPage({ resumeFile, onPrev }) {
+  const backend = "http://127.0.0.1:8000";
+
+  // ============================
+  // CORE STATES
+  // ============================
   const [resumeText, setResumeText] = useState("");
   const [jdText, setJdText] = useState("");
   const [loading, setLoading] = useState(false);
-  const backend = "http://127.0.0.1:8000";
 
+  const [previewScore, setPreviewScore] = useState(null);
+  const [atsData, setAtsData] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+
+  // ============================
+  // JD SAMPLES
+  // ============================
+   // ✅ RESTORED — Your JD SAMPLE LIST
   const JD_SAMPLES = {
     "Full Stack Developer": `We are looking for a highly skilled Full Stack Developer to join our engineering team.
 Responsibilities:
@@ -104,77 +117,200 @@ Required Skills:
 • Manual testing fundamentals
 • Test case design & bug reporting
 • API testing with Postman`,
+  
+  "Application Support Engineer": `We are looking for an Application Support Engineer to provide technical support and ensure smooth operation of business applications.
+
+Responsibilities:
+• Monitor and support production applications.
+• Troubleshoot application issues and perform root cause analysis.
+• Work with development teams to resolve bugs.
+• Handle incident management and service requests.
+• Maintain documentation and support logs.
+
+Required Skills:
+• Basic knowledge of SQL and databases
+• Understanding of Linux/Windows systems
+• Application troubleshooting
+• ITIL or Service Management concepts
+• Communication and problem-solving skills`,
+
+      "Backend Developer": `We are hiring a Backend Developer to design and build scalable backend services.
+
+Responsibilities:
+• Develop RESTful APIs using Python and FastAPI.
+• Integrate databases and third-party services.
+• Write clean, maintainable, and testable code.
+• Optimize backend performance and security.
+• Collaborate with frontend developers and DevOps teams.
+
+Required Skills:
+• Python, FastAPI
+• REST API development
+• SQL / PostgreSQL
+• Authentication & authorization
+• Docker and cloud basics (AWS preferred)`
+
+  };
+  // ============================
+  // ATS ANALYSIS CALL (FIXED)
+  // ============================
+  const analyzeATS = async (resume, jd) => {
+    const fd = new FormData();
+    fd.append("resume_text", resume);
+    fd.append("jd_text", jd);
+
+    const res = await fetch(`${backend}/analyze_resume`, {
+      method: "POST",
+      body: fd,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.final_score === undefined) {
+      console.error("Invalid ATS response:", data);
+      throw new Error("ATS analysis failed");
+    }
+
+    return data;
   };
 
+  // ============================
+  // RESUME EXTRACTION
+  // ============================
   const extractResume = async () => {
-    if (!resumeFile) return alert("No resume selected.");
+    if (!resumeFile) {
+      alert("Please upload a resume first");
+      return;
+    }
+
     const fd = new FormData();
     fd.append("file", resumeFile);
 
     try {
-      const res = await fetch(`${backend}/upload_resume`, { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload failed");
+      const res = await fetch(`${backend}/upload_resume`, {
+        method: "POST",
+        body: fd,
+      });
+
       const data = await res.json();
+
+      if (!data.resume_text) {
+        alert("Could not extract resume. Paste manually if needed.");
+      }
+
       setResumeText(data.resume_text || "");
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Failed to extract resume. Ensure backend is running.");
+    } catch (e) {
+      console.error(e);
+      alert("Resume extraction failed");
     }
   };
 
+  // ============================
+  // LIVE PREVIEW SCORE
+  // ============================
+  useEffect(() => {
+    if (!resumeText || !jdText) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await analyzeATS(resumeText, jdText);
+        setPreviewScore(data.final_score);
+      } catch {
+        setPreviewScore(null);
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [resumeText, jdText]);
+
+  // ============================
+  // FINAL ANALYZE
+  // ============================
   const analyze = async () => {
-    if (!resumeText) return alert("Extract resume first.");
-    if (!jdText) return alert("Enter job description.");
+    if (!resumeText || !jdText) {
+      alert("Resume and Job Description required");
+      return;
+    }
 
     setLoading(true);
-    const fd = new FormData();
-    fd.append("resume_text", resumeText);
-    fd.append("jd_text", jdText);
-
     try {
-      const matchRes = await fetch(`${backend}/match`, { method: "POST", body: fd });
-      if (!matchRes.ok) throw new Error("Match failed");
-      const matchData = await matchRes.json();
-
-      const suggestRes = await fetch(`${backend}/ai_suggest`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume_text: resumeText, jd_text: jdText }),
-      });
-      const suggestData = await suggestRes.json();
-
+      const data = await analyzeATS(resumeText, jdText);
+      setAtsData(data);
+      setShowResults(true);
+    } catch {
+      alert("ATS analysis failed");
+    } finally {
       setLoading(false);
-      onNext({ ...matchData, ai_suggestion: suggestData.ai_suggestion });
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-      alert("Network Error during analysis.");
     }
   };
 
+  // ============================
+  // RESULTS PAGE
+  // ============================
+  if (showResults && atsData) {
+    return (
+      <ATSResults
+        data={atsData}
+        onBack={() => setShowResults(false)}
+      />
+    );
+  }
+
+  // ============================
+  // MAIN UI
+  // ============================
   return (
-    <div className="analysis-container page">
-      <div className="left-panel">
-        <h3>Resume Extract</h3>
-        <textarea value={resumeText} readOnly placeholder="Extracted resume appears here..." />
-        <button className="extract-btn" onClick={extractResume}>Extract Resume</button>
+    <div className="page">
+      <div className="analysis-container">
 
-        <h3 style={{ marginTop: 20 }}>Paste Job Description</h3>
-        <textarea value={jdText} onChange={(e) => setJdText(e.target.value)} placeholder="Paste job description here..." />
+        <div className="left-panel">
+          <h3>Resume Extract</h3>
 
-        <div className="action-row">
-          <button className="back-btn" onClick={onPrev}>← Back</button>
-          <button className="analyze-btn" onClick={analyze}>{loading ? "Analyzing..." : "Analyze"}</button>
-        </div>
-      </div>
+          <textarea
+            value={resumeText}
+            readOnly
+            placeholder="Extracted resume appears here..."
+          />
 
-      <div className="right-panel">
-        <h3>Job Description Samples</h3>
-        {Object.keys(JD_SAMPLES).map((role) => (
-          <div key={role} className="sample-item" onClick={() => setJdText(JD_SAMPLES[role])}>
-            {role}
+          <button onClick={extractResume}>
+            Extract Resume
+          </button>
+
+          <h3 style={{ marginTop: 20 }}>Paste Job Description</h3>
+
+          <textarea
+            value={jdText}
+            onChange={(e) => setJdText(e.target.value)}
+            placeholder="Paste job description here..."
+          />
+
+          {previewScore !== null && (
+            <p>
+              Live Resume Score: <b>{previewScore}%</b>
+            </p>
+          )}
+
+          <div className="action-row">
+            <button onClick={onPrev}>← Back</button>
+            <button onClick={analyze}>
+              {loading ? "Analyzing..." : "Analyze Resume"}
+            </button>
           </div>
-        ))}
+        </div>
+
+        <div className="right-panel">
+          <h3>Job Description Samples</h3>
+          {Object.keys(JD_SAMPLES).map((role) => (
+            <div
+              key={role}
+              className="sample-item"
+              onClick={() => setJdText(JD_SAMPLES[role])}
+            >
+              {role}
+            </div>
+          ))}
+        </div>
+
       </div>
     </div>
   );

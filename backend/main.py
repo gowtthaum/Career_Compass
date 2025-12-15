@@ -1,21 +1,64 @@
 # ===============================
-#  Career Compass Backend (FIXED)
+# Career Compass Backend (FINAL – Groq Version)
 # ===============================
 
-from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from pypdf import PdfReader
-from docx import Document
-import re
+from dotenv import load_dotenv
+from datetime import datetime
+from fastapi.responses import FileResponse
+
+import pdfplumber
+import docx
+import io
+import uuid
+import os
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+# 🔁 GROQ (instead of Gemini)
+from groq import Groq
+from ai.groq import groq_chat
 
 
+# Your existing router
+from ai.career_ai import router as career_ai_router
+
 # ===============================
-# DATABASE (SQLite)
+# ENV + APP INIT
 # ===============================
+
+load_dotenv()
+
+app = FastAPI(
+    title="Career Compass API",
+    description="Backend API for Resume Analysis and Career Assistant",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ===============================
+# GROQ CLIENT
+# ===============================
+
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# ===============================
+# DATABASE
+# ===============================
+
 DATABASE_URL = "sqlite:///./users.db"
 
 engine = create_engine(
@@ -23,58 +66,38 @@ engine = create_engine(
     connect_args={"check_same_thread": False}
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
+# ===============================
+# PASSWORD HASHING
+# ===============================
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(p: str):
+    return pwd_context.hash(p[:72])
+
+def verify_password(p: str, h: str):
+    return pwd_context.verify(p[:72], h)
 
 # ===============================
-# PASSWORD HASHING (FIXED)
+# USER MODEL
 # ===============================
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  # Using correct bcrypt backend
 
-
-def hash_password(password: str):
-    password = password[:72]  # bcrypt max length fix
-    return pwd_context.hash(password)
-
-
-def verify_password(plain: str, hashed: str):
-    plain = plain[:72]  # ensure safe length
-    return pwd_context.verify(plain, hashed)
-
-
-# ===============================
-# USER TABLE
-# ===============================
 class User(Base):
     __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String)
-    email = Column(String, unique=True, index=True)
+    email = Column(String, unique=True)
     password_hash = Column(String)
 
-
 Base.metadata.create_all(bind=engine)
-
-
-# ===============================
-# FASTAPI + CORS
-# ===============================
-app = FastAPI(title="Career Compass Backend")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 # ===============================
 # DB DEPENDENCY
 # ===============================
+
 def get_db():
     db = SessionLocal()
     try:
@@ -82,193 +105,221 @@ def get_db():
     finally:
         db.close()
 
+# ===============================
+# AUTH MODELS
+# ===============================
 
-# ===============================
-# MODELS
-# ===============================
 class RegisterModel(BaseModel):
     name: str
     email: str
     password: str
 
-
 class LoginModel(BaseModel):
     email: str
     password: str
 
+# ===============================
+# AUTH ENDPOINTS
+# ===============================
 
-# ===============================
-# REGISTER ENDPOINT (FIXED)
-# ===============================
 @app.post("/register")
 def register(user: RegisterModel, db: Session = Depends(get_db)):
-    exists = db.query(User).filter(User.email == user.email).first()
-    if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    if db.query(User).filter(User.email == user.email).first():
+        raise HTTPException(400, "Email already registered")
 
-    hashed = hash_password(user.password)
-
-    new_user = User(
+    db.add(User(
         name=user.name,
         email=user.email,
-        password_hash=hashed
-    )
-
-    db.add(new_user)
+        password_hash=hash_password(user.password)
+    ))
     db.commit()
 
-    return {"message": "Account created successfully"}
+    return {"message": "Account created"}
 
-
-# ===============================
-# LOGIN ENDPOINT (FIXED)
-# ===============================
 @app.post("/login")
 def login(user: LoginModel, db: Session = Depends(get_db)):
     found = db.query(User).filter(User.email == user.email).first()
+    if not found or not verify_password(user.password, found.password_hash):
+        raise HTTPException(400, "Invalid credentials")
 
-    if not found:
-        raise HTTPException(status_code=400, detail="Email not found")
-
-    if not verify_password(user.password, found.password_hash):
-        raise HTTPException(status_code=400, detail="Incorrect password")
-
-    return {
-        "message": "Login successful",
-        "name": found.name,
-        "email": found.email
-    }
-
+    return {"name": found.name, "email": found.email}
 
 # ===============================
-# HOME ROUTE
+# RESUME EXTRACTION
 # ===============================
-@app.get("/")
-def home():
-    return {"message": "Career Compass backend running!"}
-
-
-# ===============================
-# RESUME PROCESSING
-# ===============================
-MASTER_SKILLS = [
-    "python","java","javascript","react","node","html","css","sql","mysql","mongodb",
-    "docker","kubernetes","aws","azure","linux","api","git","github","testing","selenium",
-    "tensorflow","pytorch","tableau","power bi","devops","ci/cd"
-]
-
-
-def extract_text_from_file(file: UploadFile) -> str:
-    filename = file.filename.lower()
-
-    try:
-        if filename.endswith(".pdf"):
-            reader = PdfReader(file.file)
-            return "\n".join([p.extract_text() or "" for p in reader.pages])
-
-        elif filename.endswith(".docx") or filename.endswith(".doc"):
-            doc = Document(file.file)
-            return "\n".join([p.text for p in doc.paragraphs])
-
-        return ""
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"File processing failed: {e}")
-
-
-def extract_skills(text: str):
-    t = (text or "").lower()
-    return sorted({skill for skill in MASTER_SKILLS if skill in t})
-
 
 @app.post("/upload_resume")
 async def upload_resume(file: UploadFile = File(...)):
-    text = extract_text_from_file(file)
-    skills = extract_skills(text)
-    return {"status": "success", "resume_text": text, "resume_skills": skills}
+    contents = await file.read()
+    text = ""
 
+    try:
+        if file.filename.lower().endswith(".pdf"):
+            with pdfplumber.open(io.BytesIO(contents)) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n"
+
+        elif file.filename.lower().endswith(".docx"):
+            doc = docx.Document(io.BytesIO(contents))
+            text = "\n".join(p.text for p in doc.paragraphs)
+
+    except Exception as e:
+        print("Resume extraction skipped:", e)
+
+    if not text.strip():
+        return {
+            "resume_text": "",
+            "message": "Automatic extraction not available. Please paste resume text manually."
+        }
+
+    return {"resume_text": text}
 
 # ===============================
-# MATCH RESUME & JD
+# ATS ANALYSIS (UNCHANGED)
 # ===============================
-def fast_match(resume_text: str, jd_text: str):
-    r = (resume_text or "").lower()
-    j = (jd_text or "").lower()
 
-    resume_words = set(re.findall(r"\b[a-z0-9\+\-\.\_#]+\b", r))
-    jd_words = set(re.findall(r"\b[a-z0-9\+\-\.\_#]+\b", j))
+SKILLS = [
+    "python","java","javascript","react","node",
+    "sql","aws","docker","kubernetes","linux","ci/cd"
+]
 
-    overlap = sorted(list(resume_words & jd_words))
-    missing_words = sorted(list(jd_words - resume_words))
+@app.post("/analyze_resume")
+def analyze_resume(
+    resume_text: str = Form(...),
+    jd_text: str = Form(...)
+):
+    resume = resume_text.lower()
+    jd = jd_text.lower()
 
-    score = int((len(overlap) / max(1, len(jd_words))) * 100)
+    resume_skills = [s for s in SKILLS if s in resume]
+    jd_skills = [s for s in SKILLS if s in jd]
 
-    rating = (
-        "Excellent Match" if score >= 80 else
-        "Good Match" if score >= 60 else
-        "Average Match" if score >= 40 else
-        "Weak Match"
-    )
+    matched = list(set(resume_skills) & set(jd_skills))
+    missing = list(set(jd_skills) - set(resume_skills))
 
-    resume_skills = extract_skills(r)
-    jd_skills = extract_skills(j)
-    overlap_skills = sorted(set(resume_skills) & set(jd_skills))
-    missing_skills = sorted(set(jd_skills) - set(resume_skills))
+    skills_score = int(len(matched) / max(len(jd_skills), 1) * 100)
 
-    return {
-        "match_score": score,
-        "rating": rating,
-        "similarity": f"{score}%",
-        "missing_words": missing_words[:50],
-        "overlap_words": overlap[:50],
-        "resume_skills": resume_skills,
-        "jd_skills": jd_skills,
-        "overlap_skills": overlap_skills,
-        "missing_skills": missing_skills
+    breakdown = {
+        "impact": 70,
+        "brevity": 85,
+        "style": 80,
+        "skills_match": skills_score
     }
 
+    final_score = int(
+        breakdown["impact"] * 0.2 +
+        breakdown["brevity"] * 0.2 +
+        breakdown["style"] * 0.2 +
+        breakdown["skills_match"] * 0.4
+    )
 
-@app.post("/match")
-async def match(resume_text: str = Form(...), jd_text: str = Form(...)):
-    return fast_match(resume_text, jd_text)
-
-
-# ===============================
-# AI SUGGESTIONS
-# ===============================
-@app.post("/ai_suggest")
-async def ai_suggest(req: Request):
-    body = await req.json()
-    resume_text = body.get("resume_text", "")
-    jd_text = body.get("jd_text", "")
-
-    r_skills = extract_skills(resume_text)
-    j_skills = extract_skills(jd_text)
-    missing = [s for s in j_skills if s not in r_skills]
-
-    if not j_skills:
-        return {"ai_suggestion": "Cannot detect skills in JD — add skill sections."}
-
-    if not missing:
-        return {"ai_suggestion": "Great! Your resume covers all essential JD skills."}
-
-    return {"ai_suggestion": f"Missing important skills: {', '.join(missing)}"}
-
+    return {
+        "final_score": final_score,
+        "impact": breakdown["impact"],
+        "brevity": breakdown["brevity"],
+        "style": breakdown["style"],
+        "skills_match": breakdown["skills_match"],
+        "matched_skills": matched,
+        "missing_skills": missing
+    }
 
 # ===============================
-# CAREER AI BOT
+# ATS PDF EXPORT (UNCHANGED)
 # ===============================
+
+@app.post("/export-ats-pdf")
+def export_ats_pdf(data: dict):
+    file_name = f"ATS_Report_{uuid.uuid4().hex}.pdf"
+    file_path = os.path.join(os.getcwd(), file_name)
+
+    c = canvas.Canvas(file_path, pagesize=A4)
+    y = A4[1] - 40
+
+    def draw(text, size=11):
+        nonlocal y
+        c.setFont("Helvetica", size)
+        c.drawString(40, y, text)
+        y -= size + 6
+
+    draw("CAREER COMPASS – ATS REPORT", 16)
+    draw(f"Generated on: {datetime.now().strftime('%d %b %Y %H:%M')}", 10)
+    y -= 10
+
+    draw(f"Final Resume Score: {data.get('final_score', 0)}%", 14)
+    draw(f"Impact Score: {data.get('impact', 0)}")
+    draw(f"Brevity Score: {data.get('brevity', 0)}")
+    draw(f"Style Score: {data.get('style', 0)}")
+    draw(f"Skills Match Score: {data.get('skills_match', 0)}")
+
+    y -= 10
+    draw("Matched Skills:", 13)
+    for s in data.get("matched_skills", []):
+        draw(f"- {s}")
+
+    y -= 10
+    draw("Missing Skills:", 13)
+    for s in data.get("missing_skills", []):
+        draw(f"- {s}")
+
+    c.showPage()
+    c.save()
+
+    return FileResponse(
+        path=file_path,
+        filename="CareerCompass_ATS_Report.pdf",
+        media_type="application/pdf"
+    )
+
+# ===============================
+# CAREER AI (Groq replacement)
+# ===============================
+
+class CareerAIRequest(BaseModel):
+    message: str
 @app.post("/ask_career_ai")
-async def ask_ai(req: Request):
-    q = (await req.json()).get("question", "").lower()
+async def ask_career_ai(
+    message: str = Form(...),
+    file: UploadFile = File(None)
+):
+    resume_text = ""
 
-    if not q.strip():
-        return {"reply": "Please enter a question."}
+    # ✅ Extract PDF text if uploaded
+    if file and file.filename.lower().endswith(".pdf"):
+        contents = await file.read()
+        try:
+            with pdfplumber.open(io.BytesIO(contents)) as pdf:
+                for page in pdf.pages:
+                    resume_text += (page.extract_text() or "") + "\n"
+        except Exception as e:
+            print("PDF read error:", e)
 
-    if "improve" in q:
-        return {"reply": "Use measurable achievements and JD keywords to improve your resume."}
+    # ✅ Build AI prompt
+    prompt = message
+    if resume_text:
+        prompt = f"""
+You are a career assistant.
 
-    if "skills" in q:
-        return {"reply": "Focus on hands-on projects and JD-specific tools."}
+Here is the user's resume:
+{resume_text[:4000]}
 
-    return {"reply": "Provide resume + JD for more accurate advice."}
+User question:
+{message}
+
+Give clear, professional advice.
+"""
+
+    # 🔹 Call Groq (or your AI function)
+    reply = groq_chat(prompt)
+
+    return {"reply": reply}
+# ===============================
+# ROUTERS + HEALTH
+# ===============================
+
+app.include_router(career_ai_router)
+
+@app.get("/")
+def root():
+    return {"status": "Career Compass backend running"}

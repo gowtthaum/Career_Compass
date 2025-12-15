@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from "react";
 
 
@@ -9,9 +8,10 @@ import CareerAssistant from "./CareerAssistant";
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
 import RegisterPage from "./RegisterPage";
+import "./App2.css";
 import "./App.css";
 
-// ICONS
+// MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -22,19 +22,22 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 
 export default function App() {
-  const [page, setPage] = useState("login");  // Login is first page
+  const [page, setPage] = useState("login");
   const [resumeFile, setResumeFile] = useState(null);
   const [resultData, setResultData] = useState(null);
-  const [user, setUser] = useState(null);  // NULL = not logged in
+  const [user, setUser] = useState(null);
 
   const navigate = (p) => setPage(p);
 
+  /* ===============================
+     AUTH HANDLERS
+  =============================== */
   const handleLoginSuccess = (userData) => {
     setUser({
-      name: userData.name,
+      name: userData.name || "User",
       email: userData.email,
     });
-    setPage("home"); // Redirect to dashboard home
+    setPage("home");
   };
 
   const handleRegisterSuccess = () => {
@@ -47,103 +50,111 @@ export default function App() {
     setPage("login");
   };
 
-  // ⭐ IF USER IS NOT LOGGED IN → SHOW ONLY LOGIN OR REGISTER PAGE
+  /* ===============================
+     NOT LOGGED IN → AUTH ONLY
+  =============================== */
   if (!user) {
-  return (
-    <div className="auth-wrapper">
-      {page === "login" && (
-        <LoginPage
-          onLoginSuccess={handleLoginSuccess}
-          onSwitch={setPage}
-        />
-      )}
+    return (
+      <>
+        {page === "login" && (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            onSwitch={setPage}
+          />
+        )}
 
-      {page === "register" && (
-        <RegisterPage
-          onRegisterSuccess={handleRegisterSuccess}
-          onSwitch={setPage}
-        />
-      )}
-    
-
-        <div className="auth-switch">
-          {page === "login" ? (
-            <p>
-              Don’t have an account?{" "}
-              <span onClick={() => setPage("register")}>Register</span>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{" "}
-              <span onClick={() => setPage("login")}>Login</span>
-            </p>
-          )}
-        </div>
-      </div>
+        {page === "register" && (
+          <RegisterPage
+            onRegisterSuccess={handleRegisterSuccess}
+            onSwitch={setPage}
+          />
+        )}
+      </>
     );
   }
 
-  // ⭐ AFTER LOGIN → SHOW FULL DASHBOARD
+  /* ===============================
+     DASHBOARD (LOGGED IN)
+  =============================== */
   return (
     <div className="app-container">
-      {/* SIDEBAR */}
-      <div className="sidebar">
-        <h2 className="logo">Career Compass</h2>
 
-        <div className="menu">
-          <div className="menu-item" onClick={() => navigate("home")}>
-            <HomeIcon className="icon" /> Home
+      {/* SIDEBAR → ONLY HOME PAGE */}
+      {page === "home" && (
+        <div className="sidebar">
+          <h2 className="logo">Career Compass</h2>
+
+          <div className="menu">
+            <div className="menu-item" onClick={() => navigate("home")}>
+              <HomeIcon className="icon" /> Home
+            </div>
+
+            <div className="menu-item" onClick={() => navigate("upload")}>
+              <UploadFileIcon className="icon" /> Upload Resume
+            </div>
+
+            <div className="menu-item" onClick={() => navigate("analysis")}>
+              <DescriptionIcon className="icon" /> Job Description
+            </div>
+
+            <div className="menu-item" onClick={() => navigate("results")}>
+              <BarChartIcon className="icon" /> Results
+            </div>
+
+            <div className="menu-item" onClick={() => navigate("assistant")}>
+              <SmartToyIcon className="icon" /> Career Assistant
+            </div>
           </div>
 
-          <div className="menu-item" onClick={() => navigate("upload")}>
-            <UploadFileIcon className="icon" /> Upload Resume
-          </div>
+          <div className="menu-footer">
+            <div className="menu-item">
+              <SettingsIcon className="icon" /> Settings
+            </div>
 
-          <div className="menu-item" onClick={() => navigate("analysis")}>
-            <DescriptionIcon className="icon" /> Add Job Description
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("results")}>
-            <BarChartIcon className="icon" /> Results
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("assistant")}>
-            <SmartToyIcon className="icon" /> Career Assistant
+            <div className="menu-item" onClick={logout}>
+              <LogoutIcon className="icon" /> Logout
+            </div>
           </div>
         </div>
-
-        <div className="menu-footer">
-          <div className="menu-item">
-            <SettingsIcon className="icon" /> Settings
-          </div>
-          <div className="menu-item" onClick={logout}>
-            <LogoutIcon className="icon" /> Logout
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* MAIN AREA */}
-      <div className="main">
+      <div className={`main ${page !== "home" ? "no-sidebar" : ""}`}>
+        
+        {/* TOPBAR */}
         <div className="topbar">
-          <input className="search-box" placeholder="Search anything..." />
+          {page === "home" && (
+            <input
+              className="search-box"
+              placeholder="Search anything..."
+            />
+          )}
 
           <div className="topbar-right">
             <span>Welcome, {user.name}</span>
             <NotificationsIcon className="top-icon" />
-            <img className="avatar" src="https://i.pravatar.cc/40" alt="user" />
+            <img
+              className="avatar"
+              src="https://i.pravatar.cc/40"
+              alt="user"
+            />
           </div>
         </div>
 
+        {/* PAGE CONTENT */}
         <div className="page-content">
           {page === "home" && <HomePage onNavigate={navigate} />}
+
           {page === "upload" && (
             <UploadPage
               onNext={(file) => {
                 setResumeFile(file);
                 navigate("analysis");
               }}
+                 onBack={() => navigate("home")}
             />
           )}
+
           {page === "analysis" && (
             <AnalysisPage
               resumeFile={resumeFile}
@@ -154,9 +165,17 @@ export default function App() {
               }}
             />
           )}
+       
+
+
+
           {page === "results" && (
-            <ResultPage result={resultData} onBack={() => navigate("analysis")} />
+            <ResultPage
+              result={resultData}
+              onBack={() => navigate("analysis")}
+            />
           )}
+
           {page === "assistant" && <CareerAssistant />}
         </div>
       </div>
