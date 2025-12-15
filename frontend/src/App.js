@@ -196,14 +196,18 @@ export default function App() {
           )}
 
           {page === "results" && (
-            <ResultPage
-              result={resultData}
-              onBack={() => navigate("analysis")}
-              onCareerQA={() => navigate("assistant")}
-            />
-          )}
+  <ResultPage
+    result={resultData}
+    onBack={() => navigate("analysis")}
+    onCareerQA={() => navigate("assistant")}
+  />
+)}
 
-          {page === "assistant" && <CareerAssistant />}
+{page === "assistant" && (
+  <CareerAssistant onBackHome={() => navigate("home")} />
+)}
+
+
         </div>
       </div>
 

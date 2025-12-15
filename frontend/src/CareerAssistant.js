@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-
-function CareerAssistant() {
+export default function CareerAssistant({ onBackHome }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -18,15 +17,16 @@ function CareerAssistant() {
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  /* =========================
+     AUTO SCROLL
+  ========================= */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-
-
-
-
-
+  /* =========================
+     SEND MESSAGE
+  ========================= */
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
@@ -56,7 +56,10 @@ function CareerAssistant() {
 
       setMessages(prev => [
         ...prev,
-        { role: "assistant", content: data.reply || "How can I help further?" }
+        {
+          role: "assistant",
+          content: data.reply || "How can I help further?"
+        }
       ]);
     } catch {
       setMessages(prev => [
@@ -69,20 +72,17 @@ function CareerAssistant() {
     setLoading(false);
   };
 
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="career-page">
       {/* HEADER */}
       <div className="career-header">
-        <button
-  className="back-btn"
-  onClick={() => {
-    window.dispatchEvent(new Event("go-to-home"));
-  }}
->
-  ← Back to Home
-</button>
-
-      
+        <button className="back-btn" onClick={onBackHome}>
+          ← Back to Home
+        </button>
+        <h3>Career Assistant</h3>
       </div>
 
       {/* CHAT CARD */}
@@ -96,7 +96,6 @@ function CareerAssistant() {
               </span>
               <span className="chat-text">{msg.content}</span>
 
-              {/* Edit last user message */}
               {msg.role === "user" && i === messages.length - 2 && (
                 <button
                   className="edit-btn"
@@ -151,14 +150,8 @@ function CareerAssistant() {
           </button>
         </div>
 
-        {file && (
-          <div className="file-preview">
-            Attached: {file.name}
-          </div>
-        )}
+        {file && <div className="file-preview">Attached: {file.name}</div>}
       </div>
     </div>
   );
 }
-
-export default CareerAssistant;

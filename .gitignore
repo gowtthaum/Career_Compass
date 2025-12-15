@@ -55,3 +55,31 @@ uploads/
 # ===============================
 .cache/
 .tmp/
+
+
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# Build
+build/
+dist/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+
+# PDFs / uploads
+uploads/
+*.pdf

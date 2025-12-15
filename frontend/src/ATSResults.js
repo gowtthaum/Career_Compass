@@ -297,14 +297,13 @@ if (!data) {
               ))}
             </ul>
           </div>
-              <button
+             <button
   className="ai-generate-btn"
-  onClick={() => {
-    window.dispatchEvent(new Event("go-to-career-assistant"));
-  }}
+  onClick={onCareerQA}
 >
   Career Q / A →
 </button>
+
 
 
 
