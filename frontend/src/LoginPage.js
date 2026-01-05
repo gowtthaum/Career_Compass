@@ -7,23 +7,47 @@ export default function LoginPage({ onLoginSuccess, onSwitch }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const login = () => {
+  const login = async () => {
+    setError("");
+
     if (!email || !password) {
       setError("Please enter email and password");
       return;
     }
 
-    const savedUser = JSON.parse(localStorage.getItem("career_user"));
+    setLoading(true);
 
-    if (
-      savedUser &&
-      savedUser.email === email &&
-      savedUser.password === password
-    ) {
-      onLoginSuccess(savedUser);
-    } else {
-      setError("Invalid email or password");
+    try {
+      const response = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.detail || "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("career_user", JSON.stringify(data));
+
+      onLoginSuccess(data);
+
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,15 +63,16 @@ export default function LoginPage({ onLoginSuccess, onSwitch }) {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
         />
 
-        {/* PASSWORD WITH EYE ICON */}
         <div className="password-field">
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
           />
 
           <span
@@ -58,7 +83,9 @@ export default function LoginPage({ onLoginSuccess, onSwitch }) {
           </span>
         </div>
 
-        <button onClick={login}>Login</button>
+        <button onClick={login} disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
 
         <div className="auth-switch">
           Don’t have an account?{" "}

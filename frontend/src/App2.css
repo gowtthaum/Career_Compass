@@ -112,17 +112,12 @@
   margin-bottom: 8px;
 }
 /* BACK BUTTON – UPLOAD PAGE */
-/* ===========================
-   UPLOAD PAGE LAYOUT
-=========================== */
+
 
 .upload-page {
   position: relative;
   padding: 30px;
 }
-/* ===========================
-   STEP INDICATOR
-=========================== */
 
 .steps {
   display: flex;
@@ -183,9 +178,6 @@
   font-weight: 600;
 }
 
-/* ===========================
-   PASTE LINK
-=========================== */
 
 .paste-link {
   margin-top: 18px;
@@ -302,9 +294,6 @@
   gap: 30px;
   margin-bottom: 40px;
 }
-/* ===========================
-   ATS DETAILED ANALYSIS
-=========================== */
 
 .ats-section {
   margin: 60px auto;
@@ -425,9 +414,7 @@
     grid-template-columns: 1fr;
   }
 }
-/* ===========================
-   ATS V2 SECTION (ADDITIONAL)
-=========================== */
+
 
 .ats-v2 {
   width: 95%;
@@ -547,9 +534,7 @@
     grid-template-columns: 1fr;
   }
 }
-/* =========================
-   ATS RESULTS LAYOUT
-========================= */
+
 
 .ats-grid {
   display: grid;
@@ -571,9 +556,6 @@
   transform: translateY(-4px);
 }
 
-/* =========================
-   CARD TITLE
-========================= */
 
 .ats-card h4 {
   font-size: 13px;
@@ -582,10 +564,6 @@
   color: #6b7280;
   margin-bottom: 16px;
 }
-
-/* =========================
-   SCORE CIRCLE
-========================= */
 
 .score-circle {
   width: 110px;
@@ -625,9 +603,6 @@
   font-weight: 700;
 }
 
-/* =========================
-   LABEL (GOOD / AVERAGE)
-========================= */
 
 .label {
   display: inline-block;
@@ -662,10 +637,6 @@
   font-size: 13px;
 }
 
-/* =========================
-   CHECK LIST
-========================= */
-
 .ats-card ul {
   list-style: none;
   padding: 0;
@@ -690,10 +661,6 @@
   font-weight: 600;
   color: #10b981;
 }
-
-/* =========================
-   HEADER + BUTTON
-========================= */
 
 .page h2 {
   font-size: 22px;
@@ -721,9 +688,7 @@
   background: #1a4ee8;
 }
 /*-------------- career assistant--------------*/
-/* ===============================
-   PAGE
-=============================== */
+
 .career-page {
   min-height: calc(100vh - 70px);
   background: #f9fafb;
@@ -733,9 +698,6 @@
   padding: 24px;
 }
 
-/* ===============================
-   HEADER
-=============================== */
 .career-header {
   width: 100%;
   max-width: 900px;
@@ -754,9 +716,7 @@
   cursor: pointer;
 }
 
-/* ===============================
-   CHAT CARD
-=============================== */
+
 .chat-card {
   width: 100%;
   max-width: 900px;
@@ -769,25 +729,19 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
-/* ===============================
-   CHAT TEXT AREA
-=============================== */
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   font-size: 14px;
   line-height: 1.8;
 }
-
-/* ===============================
-   CHAT LINES (NO BUBBLES)
-=============================== */
 .chat-line {
   margin-bottom: 14px;
-  white-space: pre-wrap;           /* ✅ preserve paragraphs */
+  white-space: pre-wrap;           
   word-break: break-word;
   overflow-wrap: break-word;
-  max-width: 80ch;                 /* ✅ readable line length */
+  max-width: 80ch;             
 }
 
 /* ROLE LABEL */
@@ -806,10 +760,6 @@
 .chat-line.assistant .chat-role {
   color: #111827;
 }
-
-/* ===============================
-   INPUT AREA
-=============================== */
 .chat-input {
   display: flex;
   gap: 10px;
@@ -847,10 +797,6 @@
   border-radius: 8px;
   cursor: pointer;
 }
-
-/* ===============================
-   FILE PREVIEW
-=============================== */
 .file-preview {
   font-size: 13px;
   margin-top: 6px;
@@ -865,7 +811,7 @@
   max-width: 75ch;     
    white-space: pre-wrap !important;
   word-break: break-word !important;
-  overflow-wrap: break-word !important;          /* ✅ limits line width */
+  overflow-wrap: break-word !important;         
 }
 
 /* TYPING */
@@ -873,10 +819,6 @@
   opacity: 0.7;
   font-style: italic;
 }
-
-/* ===============================
-   FORMAT AI CONTENT
-=============================== */
 .bubble.assistant p {
   margin-bottom: 10px;
 }
@@ -889,10 +831,6 @@
 .bubble.assistant li {
   margin-bottom: 6px;
 }
-
-/* ===============================
-   EDIT BUTTON
-=============================== */
 .edit-btn {
   margin-left: 8px;
   font-size: 12px;
@@ -905,10 +843,6 @@
 .edit-btn:hover {
   text-decoration: underline;
 }
-
-/* ===============================
-   INPUT BAR (LOCKED ALIGNMENT)
-=============================== */
 .chat-input {
   display: flex;
   align-items: center;
@@ -971,19 +905,11 @@
   background: #9ca3af;
   cursor: not-allowed;
 }
-
-/* ===============================
-   FILE PREVIEW
-=============================== */
 .file-preview {
   padding: 6px 16px 12px;
   font-size: 13px;
   color: #374151;
 }
-
-/* ===============================
-   GLOBAL SAFETY
-=============================== */
 button {
   pointer-events: auto;
 }

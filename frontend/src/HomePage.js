@@ -1,12 +1,12 @@
-// src/HomePage.js
+
 import React from "react";
-//import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+
 
 export default function HomePage({ onNavigate }) {
   return (
     <div className="home-wrapper">
 
-      {/* HERO SECTION */}
+  
       <section className="home-hero">
         <h1>AI-Powered Career Compass</h1>
         <p>
@@ -18,7 +18,18 @@ export default function HomePage({ onNavigate }) {
           <button onClick={() => onNavigate("upload")}>Upload Resume</button>
           <button onClick={() => onNavigate("analysis")}>Add Job Description</button>
           <button onClick={() => onNavigate("assistant")}>Ask Career Assistant</button>
+          <button
+                className="btn-primary"
+                  onClick={() => onNavigate("/recommended-jobs")}
+>
+  Recommended Jobs
+</button>
+
+
+
+
         </div>
+        
       </section>
 
       {/* HOW IT HELPS */}

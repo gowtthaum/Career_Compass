@@ -1,10 +1,5 @@
   import React, { useEffect, useState } from "react";
- // import ResultPage from "./ResultPage";
-
-
-  /* =========================
-    COUNT-UP HOOK
-  ========================= */
+ 
   function useCountUp(target, duration = 900, delay = 0) {
     const [value, setValue] = useState(0);
 
@@ -37,10 +32,6 @@
 
     return value;
   }
-
-  /* =========================
-    SCORE SUGGESTIONS
-  ========================= */
   function getSuggestion(section, score) {
     if (section === "IMPACT") {
       if (score < 40) return "Add measurable results and strong action verbs.";
@@ -68,10 +59,6 @@
   }
 
   }
-
-  /* =========================
-    SCORE CARD
-  ========================= */
   function ScoreCard({ title, score, items, delay }) {
     const animatedScore = useCountUp(score, 900, delay);
 
@@ -107,11 +94,8 @@
       </div>
     );
   }
-
-  /* =========================
-    MAIN COMPONENT
-  ========================= */
-  export default function ATSResults({ data, onBack, onCareerQA }) {
+  export default function ATSResults({ data, onBack, onCareerQA,onApplyJobs
+  }) {
 
     
 
@@ -141,9 +125,6 @@ if (!data) {
 
     const hasMissingSkills = missing_skills.length > 0;
 
-    /* =========================
-      SKILLS MATCH CARD DATA
-    ========================= */
     const skillsMatchItems = hasMissingSkills
       ? missing_skills.map(skill => ({
           name: `Missing: ${skill.toUpperCase()}`,
@@ -158,9 +139,7 @@ if (!data) {
           }
         ];
 
-    /* =========================
-      SCORE CARDS
-    ========================= */
+  
     const cards = [
       {
         title: "IMPACT",
@@ -196,9 +175,7 @@ if (!data) {
       }
     ];
 
-    /* =========================
-      RULE-BASED RECOMMENDATIONS
-    ========================= */
+   
     const recommendedSkills = hasMissingSkills
       ? missing_skills.map(
           skill =>
@@ -224,9 +201,7 @@ if (!data) {
           "How do you keep your technical skills updated?"
         ];
 
-    /* =========================
-      PDF DOWNLOAD
-    ========================= */
+  
     const downloadPDF = async () => {
     const payload = {
       ...data,
@@ -251,9 +226,7 @@ if (!data) {
     a.remove();
   };
 
-    /* =========================
-      RENDER
-    ========================= */
+   
     return (
       <div className="ats-header">
         <div>
@@ -265,53 +238,55 @@ if (!data) {
           ⬇ Download ATS Report (PDF)
         </button>
 
-        {/* ===== SCORE DASHBOARD ===== */}
         <div className="ats-grid">
           {cards.map((card, idx) => (
             <ScoreCard key={idx} {...card} delay={600 + idx * 300} />
           ))}
         </div>
 
-        {/* ===== RECOMMENDATIONS (SAME PAGE) ===== */}
-        <div className="ats-ai-bottom ats-animate">
+<div className="ats-ai-section">
 
-          <h3>Recommended Skills & Interview Questions</h3>
-          <p className="ai-subtitle">
-            {hasMissingSkills
-              ? "Based on missing skills from your resume analysis"
-              : "Your profile is strong. Here’s how to stand out further."}
-          </p>
+  <h3>Recommended Skills & Interview Questions</h3>
+  <p className="ai-subtitle">
+    {hasMissingSkills
+      ? "Based on missing skills from your resume analysis"
+      : "Your profile is strong. Here’s how to stand out further."}
+  </p>
 
-          <div className="ai-box">
-            <h4>Recommended Skills to Learn</h4>
-            <ul>
-              {recommendedSkills.map((skill, i) => (
-                <li key={i}>{skill}</li>
-              ))}
-            </ul>
+  {/* CARDS */}
+  <div className="ats-ai-cards">
 
-            <h4>Interview Questions</h4>
-            <ul>
-              {interviewQuestions.map((q, i) => (
-                <li key={i}>{q}</li>
-              ))}
-            </ul>
-          </div>
-             <button
-  className="ai-generate-btn"
-  onClick={onCareerQA}
->
-  Career Q / A →
-</button>
+    <div className="ats-info-card">
+      <h4>Recommended Skills to Learn</h4>
+      <ul>
+        {recommendedSkills.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
 
+    <div className="ats-info-card">
+      <h4>Interview Questions</h4>
+      <ul>
+        {interviewQuestions.map((q, i) => (
+          <li key={i}>{q}</li>
+        ))}
+      </ul>
+    </div>
 
+  </div>
+=
+  <div className="ats-bottom-actions">
+    <button className="secondary-btn" onClick={onCareerQA}>
+      Career Q / A →
+    </button>
 
+    <button className="apply-jobs-btn" onClick={onApplyJobs}>
+      Apply Jobs →
+    </button>
+  </div>
+</div>
 
-        </div>
-
-        <button className="back-btn" onClick={onBack}>
-          ← Back to Analysis
-        </button>
       </div>
     );
   }

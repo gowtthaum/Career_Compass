@@ -10,7 +10,7 @@ const handleDrop = (e) => {
 
   const droppedFile = e.dataTransfer.files[0];
   if (droppedFile) {
-    onNext(droppedFile); // directly pass
+    onNext(droppedFile); 
   }
 };
 
@@ -20,7 +20,6 @@ const handleFileSelect = (e) => {
     onNext(selectedFile);
   }
 };
-
 
   return (
     <div className="upload-page">
@@ -48,7 +47,7 @@ const handleFileSelect = (e) => {
           </div>
         </div>
 
-        {/* Upload Box */}
+     
         <div
           className={`upload-box ${dragging ? "drag-active" : ""}`}
           onDragOver={(e) => {

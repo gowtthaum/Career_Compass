@@ -39,7 +39,7 @@ export default function RegisterPage({ onRegisterSuccess, onSwitch }) {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* PASSWORD WITH EYE ICON */}
+      
         <div className="password-field">
           <input
             type={showPassword ? "text" : "password"}

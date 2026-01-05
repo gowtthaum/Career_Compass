@@ -1,6 +1,3 @@
-# ===============================
-# Career Compass Backend (FINAL – Groq Version)
-# ===============================
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,10 +6,15 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from job_recommendation import router as job_router
+from auth.email import send_login_email
+from ai.career_ai import router as career_ai_router
+
+
 from datetime import datetime
 from fastapi.responses import FileResponse
 from ai.ats_ai import generate_ats_ai_suggestions
-
+from job_recommendation.routes import router as job_router
 import pdfplumber
 import docx
 import io
@@ -22,17 +24,28 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-# 🔁 GROQ (instead of Gemini)
+
+app = FastAPI(
+    title="Career Compass API",
+    description="Backend API for Resume Analysis and Career Assistant",
+    version="1.0.0"
+)
+
+app.include_router(career_ai_router)
+
+
+# 🔁 GROQ 
 from groq import Groq
 from ai.groq import groq_chat
 
 
-# Your existing router
+
 from ai.career_ai import router as career_ai_router
 
-# ===============================
-# ENV + APP INIT
-# ===============================
+class JobSearchRequest(BaseModel):
+    resume_text: str
+    search_query: str | None = None
+
 
 load_dotenv()
 
@@ -50,17 +63,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ===============================
-# GROQ CLIENT
-# ===============================
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# ===============================
-# DATABASE
-# ===============================
-
-DATABASE_URL = "sqlite:///./users.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'users.db')}"
 
 engine = create_engine(
     DATABASE_URL,
@@ -70,21 +77,20 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# ===============================
-# PASSWORD HASHING
-# ===============================
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(p: str):
-    return pwd_context.hash(p[:72])
+    try:
+        return pwd_context.hash(p[:72])
+    except Exception as e:
+        print("❌ PASSWORD HASH ERROR:", e)
+        raise
+
 
 def verify_password(p: str, h: str):
     return pwd_context.verify(p[:72], h)
 
-# ===============================
-# USER MODEL
-# ===============================
 
 class User(Base):
     __tablename__ = "users"
@@ -98,21 +104,12 @@ Base.metadata.create_all(bind=engine)
 class ATSAIRequest(BaseModel):
     resume_text: str
     jd_text: str
-
-# ===============================
-# DB DEPENDENCY
-# ===============================
-
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-# ===============================
-# AUTH MODELS
-# ===============================
 
 class RegisterModel(BaseModel):
     name: str
@@ -123,42 +120,57 @@ class LoginModel(BaseModel):
     email: str
     password: str
 
-# ===============================
-# AUTH ENDPOINTS
-# ===============================
-
 @app.post("/register")
 def register(user: RegisterModel, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(400, "Email already registered")
+    try:
+        if db.query(User).filter(User.email == user.email).first():
+            raise HTTPException(400, "Email already registered")
 
-    db.add(User(
-        name=user.name,
-        email=user.email,
-        password_hash=hash_password(user.password)
-    ))
-    db.commit()
+        db.add(User(
+            name=user.name,
+            email=user.email,
+            password_hash=hash_password(user.password)
+        ))
+        db.commit()
 
-    return {"message": "Account created"}
+        return {"message": "Account created"}
+    except Exception as e:
+        print("REGISTER ERROR:", e)
+        raise
+
 
 @app.post("/login")
-def login(user: LoginModel, db: Session = Depends(get_db)):
+async def login(user: LoginModel, db: Session = Depends(get_db)):
     found = db.query(User).filter(User.email == user.email).first()
+
     if not found or not verify_password(user.password, found.password_hash):
-        raise HTTPException(400, "Invalid credentials")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    try:
+        await send_login_email(found.email, found.name)
+    except Exception as e:
+        print("⚠️ Email failed, but login allowed:", e)
 
     return {"name": found.name, "email": found.email}
 
-# ===============================
-# RESUME EXTRACTION
-# ===============================
+from fastapi import UploadFile, File, HTTPException
+import pdfplumber
+import docx
+import io
 
 @app.post("/upload_resume")
 async def upload_resume(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith((".pdf", ".docx")):
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file format. Upload PDF or DOCX only."
+        )
+
     contents = await file.read()
     text = ""
 
     try:
+       
         if file.filename.lower().endswith(".pdf"):
             with pdfplumber.open(io.BytesIO(contents)) as pdf:
                 for page in pdf.pages:
@@ -166,24 +178,28 @@ async def upload_resume(file: UploadFile = File(...)):
                     if page_text:
                         text += page_text + "\n"
 
+     
         elif file.filename.lower().endswith(".docx"):
             doc = docx.Document(io.BytesIO(contents))
-            text = "\n".join(p.text for p in doc.paragraphs)
+            text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
 
     except Exception as e:
-        print("Resume extraction skipped:", e)
+        print("Resume extraction error:", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Error while extracting resume text"
+        )
 
     if not text.strip():
         return {
             "resume_text": "",
-            "message": "Automatic extraction not available. Please paste resume text manually."
+            "message": "Resume text could not be extracted. Please upload a text-based PDF/DOCX or paste resume text manually."
         }
 
-    return {"resume_text": text}
-
-# ===============================
-# ATS ANALYSIS (UNCHANGED)
-# ===============================
+    return {
+        "resume_text": text,
+        "message": "Resume extracted successfully"
+    }
 
 SKILLS = [
     "python","java","javascript","react","node",
@@ -229,10 +245,6 @@ def analyze_resume(
         "matched_skills": matched,
         "missing_skills": missing
     }
-
-# ===============================
-# ATS PDF EXPORT (UNCHANGED)
-# ===============================
 
 @app.post("/export-ats-pdf")
 def export_ats_pdf(data: dict):
@@ -286,10 +298,6 @@ def export_ats_pdf(data: dict):
         media_type="application/pdf"
     )
 
-# ===============================
-# CAREER AI (Groq replacement)
-# ===============================
-
 class CareerAIRequest(BaseModel):
     message: str
 @app.post("/ask_career_ai")
@@ -298,8 +306,6 @@ async def ask_career_ai(
     file: UploadFile = File(None)
 ):
     resume_text = ""
-
-    # ✅ Extract PDF text if uploaded
     if file and file.filename.lower().endswith(".pdf"):
         contents = await file.read()
         try:
@@ -309,7 +315,7 @@ async def ask_career_ai(
         except Exception as e:
             print("PDF read error:", e)
 
-    # ✅ Build AI prompt
+   
     prompt = message
     if resume_text:
         prompt = f"""
@@ -324,14 +330,10 @@ User question:
 Give clear, professional advice.
 """
 
-    # 🔹 Call Groq (or your AI function)
+    
     reply = groq_chat(prompt)
 
     return {"reply": reply}
-# ===============================
-# ROUTERS + HEALTH
-# ===============================
-
 app.include_router(career_ai_router)
 
 @app.get("/")
@@ -345,14 +347,11 @@ async def ats_ai_suggestions(data: ATSAIRequest):
         resume_text=data.resume_text,
         jd_text=data.jd_text
     )
-# ===============================
-# RULE-BASED RECOMMENDATIONS (NO AI)
-# ===============================
+
 @app.post("/ats-recommendations")
 def ats_recommendations(payload: dict):
     missing_skills = payload.get("missing_skills", [])
 
-    # Skill → Interview Questions Mapping
     QUESTION_BANK = {
         "python": [
             "What are Python decorators?",
@@ -396,3 +395,9 @@ def ats_recommendations(payload: dict):
         "recommended_skills": missing_skills,
         "interview_questions": interview_questions[:6]
     }
+app.include_router(job_router)
+@app.get("/test-mail")
+async def test_mail():
+    from auth.email import send_login_email
+    await send_login_email("gowtthaum23@gmail.com", "Test User")
+    return {"status": "mail triggered"}

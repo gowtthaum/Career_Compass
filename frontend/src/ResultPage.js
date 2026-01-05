@@ -1,11 +1,17 @@
 import ATSResults from "./ATSResults";
 
-export default function ResultPage({ result, onBack, onCareerQA }) {
+export default function ResultPage({
+  result,
+  onBack,
+  onCareerQA,
+  onApplyJobs
+}) {
   return (
     <ATSResults
       data={result}
       onBack={onBack}
-      onCareerQA={onCareerQA}   // ✅ pass it down
+      onCareerQA={onCareerQA}
+      onApplyJobs={onApplyJobs}
     />
   );
 }
