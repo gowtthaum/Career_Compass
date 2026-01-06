@@ -146,10 +146,11 @@ async def login(user: LoginModel, db: Session = Depends(get_db)):
     if not found or not verify_password(user.password, found.password_hash):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
+    # ✅ EMAIL SHOULD NEVER BREAK LOGIN
     try:
         await send_login_email(found.email, found.name)
     except Exception as e:
-        print("⚠️ Email failed, but login allowed:", e)
+        print("⚠️ Email failed, login still allowed:", e)
 
     return {"name": found.name, "email": found.email}
 

@@ -37,9 +37,6 @@ export default function App() {
 
   const navigate = (p) => setPage(p);
 
-  /* ===============================
-     LOAD LAST RESULT
-  =============================== */
   useEffect(() => {
     const saved = localStorage.getItem("atsResult");
     if (saved) {
@@ -47,9 +44,7 @@ export default function App() {
     }
   }, []);
 
-  /* ===============================
-     AUTH
-  =============================== */
+
   const handleLoginSuccess = (userData) => {
     setUser({
       name: userData.name || "User",
@@ -72,9 +67,7 @@ export default function App() {
     setPage("login");
   };
 
-  /* ===============================
-     LOGIN / REGISTER
-  =============================== */
+
   if (!user) {
     return (
       <>

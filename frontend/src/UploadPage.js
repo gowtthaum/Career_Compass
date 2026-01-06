@@ -59,7 +59,7 @@ const handleFileSelect = (e) => {
         >
           <input
             type="file"
-            accept=".pdf,.doc,.docx"
+            accept=".pdf,.doc,.docx "
             hidden
             id="resume-upload"
             onChange={handleFileSelect}
@@ -73,7 +73,7 @@ const handleFileSelect = (e) => {
             to upload
           </p>
 
-          <small>.pdf or .docx file</small>
+          <small>.pdf or .docx file Min 10 MB</small>
         </div>
 
         <div className="paste-text">Or paste resume text</div>

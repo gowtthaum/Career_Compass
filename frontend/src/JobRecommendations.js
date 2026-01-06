@@ -53,14 +53,19 @@ export default function JobRecommendations({ resumeText, onBack }) {
               {job.company} • {job.location}
             </p>
 
-            <a
-              className="apply-link"
-              href={job.apply_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Apply →
-            </a>
+           <a
+  className="apply-link"
+  href={
+    job.apply_url.startsWith("http")
+      ? job.apply_url
+      : `https://${job.apply_url}`
+  }
+  target="_blank"
+  rel="noreferrer"
+>
+  Apply →
+</a>
+
           </div>
         ))}
       </div>

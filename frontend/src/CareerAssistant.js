@@ -17,16 +17,11 @@ export default function CareerAssistant({ onBackHome }) {
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  /* =========================
-     AUTO SCROLL
-  ========================= */
+ 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* =========================
-     SEND MESSAGE
-  ========================= */
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
@@ -72,9 +67,6 @@ export default function CareerAssistant({ onBackHome }) {
     setLoading(false);
   };
 
-  /* =========================
-     UI
-  ========================= */
   return (
     <div className="career-page">
       {/* HEADER */}

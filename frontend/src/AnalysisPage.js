@@ -4,18 +4,13 @@ import React, { useEffect, useState } from "react";
 export default function AnalysisPage({ resumeFile, onPrev, onNext }) {
   const backend = "http://127.0.0.1:8000";
 
-  /* ============================
-     CORE STATES
-  ============================ */
+
   const [resumeText, setResumeText] = useState("");
   const [jdText, setJdText] = useState("");
   const [loading, setLoading] = useState(false);
   const [previewScore, setPreviewScore] = useState(null);
 
-  /* ============================
-     JD SAMPLES
-  ============================ */
-   // ✅ RESTORED — Your JD SAMPLE LIST
+
   const JD_SAMPLES = {
     "Full Stack Developer": `We are looking for a highly skilled Full Stack Developer to join our engineering team.
 Responsibilities:
@@ -114,9 +109,7 @@ Required Skills:
 • Test case design & bug reporting
 • API testing with Postman`,
   };
-  /* ============================
-     ATS ANALYSIS API
-  ============================ */
+
   const analyzeATS = async (resume, jd) => {
     const fd = new FormData();
     fd.append("resume_text", resume);
@@ -136,9 +129,7 @@ Required Skills:
     return data;
   };
 
-  /* ============================
-     RESUME EXTRACTION
-  ============================ */
+
   const extractResume = async () => {
     if (!resumeFile) {
       alert("Please upload a resume first");
@@ -161,9 +152,9 @@ Required Skills:
     }
   };
 
-  /* ============================
+  /* 
      LIVE PREVIEW SCORE
-  ============================ */
+   */
   useEffect(() => {
     if (!resumeText || !jdText) return;
 
@@ -179,9 +170,9 @@ Required Skills:
     return () => clearTimeout(timer);
   }, [resumeText, jdText]);
 
-  /* ============================
+  /* 
      FINAL ANALYZE → SEND UP
-  ============================ */
+   */
   const analyze = async () => {
     if (!resumeText || !jdText) {
       alert("Resume and Job Description required");
@@ -199,9 +190,9 @@ Required Skills:
     }
   };
 
-  /* ============================
+  /* 
      UI
-  ============================ */
+  */
   return (
     <div className="page">
       <div className="analysis-container">

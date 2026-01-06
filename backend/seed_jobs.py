@@ -18,17 +18,18 @@ CREATE TABLE IF NOT EXISTS jobs (
 
 # job seed data
 jobs = [
-  ("Junior Python Developer","TechNova","Bangalore","python,flask,sql,git","https://careers.technova.com/python-dev"),
-  ("Backend Developer (Python)","CodeCraft","Remote","python,fastapi,rest api,sql","https://jobs.codecraft.io/backend-python"),
-  ("Software Engineer – API Development","CloudAxis","Hyderabad","python,fastapi,api,sql","https://cloudaxis.com/careers/api-engineer"),
-  ("Data Analyst","DataCore","Remote","sql,excel,python,power bi","https://datacore.ai/jobs/data-analyst"),
-  ("Frontend Developer (React)","WebSpark","Chennai","react,javascript,html,css","https://webspark.in/react-developer"),
-  ("Full Stack Developer","InnoTech Labs","Pune","python,react,sql,api","https://innotechlabs.com/careers/fullstack"),
-  ("Machine Learning Intern","AIWorks","Remote","python,ml,pandas,numpy","https://aiworks.io/internships/ml"),
-  ("SQL / Database Developer","QuerySoft","Bangalore","sql,joins,indexing,optimization","https://querysoft.com/jobs/sql-dev"),
-  ("DevOps Engineer (Junior)","InfraStack","Noida","linux,docker,ci cd,git","https://infrastack.tech/devops"),
-  ("QA Automation Engineer","TestPro Systems","Remote","testing,selenium,python,api testing","https://testprosystems.com/careers/qa")
+  ("Junior Python Developer","Infosys","Bangalore","python,flask,sql,git","https://www.infosys.com/careers"),
+  ("Backend Developer (Python)","TCS","Remote","python,fastapi,rest api,sql","https://www.tcs.com/careers"),
+  ("Software Engineer – API Development","Accenture","Hyderabad","python,fastapi,api,sql","https://www.accenture.com/careers"),
+  ("Data Analyst","Deloitte","Remote","sql,excel,python,power bi","https://www2.deloitte.com/careers"),
+  ("Frontend Developer (React)","Zoho","Chennai","react,javascript,html,css","https://www.zoho.com/careers"),
+  ("Full Stack Developer","Wipro","Pune","python,react,sql,api","https://careers.wipro.com"),
+  ("Machine Learning Intern","IBM","Remote","python,ml,pandas,numpy","https://www.ibm.com/careers"),
+  ("SQL / Database Developer","Oracle","Bangalore","sql,joins,indexing,optimization","https://www.oracle.com/careers"),
+  ("DevOps Engineer (Junior)","Amazon","Noida","linux,docker,ci cd,git","https://www.amazon.jobs"),
+  ("QA Automation Engineer","Capgemini","Remote","testing,selenium,python,api testing","https://www.capgemini.com/careers")
 ]
+
 
 # insert data
 cursor.executemany("""
