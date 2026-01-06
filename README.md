@@ -73,53 +73,29 @@ The platform focuses on solving real-world hiring challenges by combining resume
 
 ---
 
-## 🏗️ Project Architecture
-
-CareerCompass/
-├── backend/
-│ ├── main.py
-│ ├── jobs.db
-│ ├── auth/
-│ ├── ai/
-│ ├── job_recommendation/
-│ └── utils.py
-│
-├── frontend/
-│ ├── src/
-│ ├── public/
-│ └── package.json
-│
-└── README.md
-
-yaml
-Copy code
-
----
-
 ## 🚀 How to Run the Project
 
 ### Backend Setup
-```bash
+
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
-Frontend Setup
-bash
-Copy code
+
+
+### Frontend Setup
+
 cd frontend
 npm install
 npm start
 Backend runs on:
-
-cpp
-Copy code
 http://127.0.0.1:8000
-Frontend runs on:
 
-arduino
-Copy code
+Frontend runs on:
 http://localhost:3000
-🔮 Future Enhancements
+
+---
+
+**###🔮 Future Enhancements**
 JWT-based authentication
 
 Role-based resume rewriting using AI
@@ -132,7 +108,7 @@ Saved jobs and resume history
 
 Vector-based semantic job matching (RAG)
 
-🎯 Why This Project?
+**🎯 Why This Project?**
 Career Compass was built to address real challenges faced by job seekers:
 
 Resume shortlisting by ATS systems
@@ -145,7 +121,7 @@ Preparing for interviews
 
 The project emphasizes clarity, transparency, and actionable insights rather than generic automation.
 
-👤 Author
+**👤 Author**
 Gowtham
 
 A passionate full-stack developer interested in AI-powered applications, career-tech platforms, and scalable system design.
